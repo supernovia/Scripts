@@ -1,0 +1,133 @@
+/* ==UserStyle==
+@name           Simplify Sidebar on Forums
+@namespace      github.com/openstyles/stylus
+@version        1.0.0
+@description    A new userstyle
+@author         Me
+==/UserStyle== */
+
+@-moz-document url-prefix("https://wordpress.com/forums/") {
+    
+    
+    /* make browser icons small */ 
+    img.platform-type, img.browser-type {
+        height: 3em;
+    }
+    
+    /* make the text huge */
+    .bbp-reply-content p {
+        font-size: 18px;
+    }
+    
+    
+    /* hide stuff I don't need */
+    
+    .form-allowed-tags, .topic-freshness-author, .voice-count, .topic-forum, .topic-details, .topic-freshness-author, .topic-freshness-time {
+        display: none;
+    }
+    
+     
+    /* hiding because it never works */
+    .browser-meta {
+        display: none; 
+    }
+    
+    /* we know the titles of most sections and this frees up some space and resolves alignment issues */
+    .widget-title {
+        display: none; 
+    }
+    
+    /* clear alignment on this form */
+    .support-forums-workflow {
+        clear: both;
+    }
+
+    /* add the word tags back to remind us to put them in there! */
+    .support-forums-topic-tags:before {
+        content: "Tags";
+        font-size: 1.2em;
+        font-weight: bold;
+        display: block;
+        clear: both;
+        margin-bottom: .2em;
+        background-color: #0084be;
+        color: white;
+        padding: .25em .5em;
+        border-radius: .25em;
+        width: fit-content;
+        text-align: center;
+    }
+
+
+    /* Emphasize Tags! */
+    
+    .support-forums-topic-tags li:not(.add-tag-form) {
+    font-size: 1.4em;
+    border-color: #0084be8a;
+    background-color: white;
+
+    }
+    
+    ul.support-forums-topic-tags {
+    position: absolute;
+    top: 10em;
+    right: 6em;
+    display: block;
+    width: 20em;
+    background-color: #b2d7e8;
+    padding: 1em 1em 1em 1em;
+    border-radius: 1em;
+    border-width: 2px;
+    border-style: dotted;
+    border-color: #0084be;
+}
+    
+    /* Buttons instead of a list */
+
+    
+    .user-report-card, .user-in-network-admin, .upgrades-transactions, .blog, .blog-admin, .blog-report-card, .blog-in-network-admin, .widget.subscription-toggle, .widget.favorite-toggle {
+        display: block;
+        width: 1.5em;
+        height: 1.5em;
+        padding: 0 2px;
+        line-height: 1.5em;
+        font-size: 1.5em;     
+        overflow: hidden;
+        float: left;
+        margin-right: .5em;
+        margin-bottom: .5em;
+    }
+
+
+    .blog { clear: left; }
+    .user-report-card { width: 3.5em; }
+    
+        
+    .user-report-card:before {
+        content: '\1F464 \2000 \2000RC ';
+    }
+    
+    .user-in-network-admin:before {
+        content: 'NA ';
+    }
+    
+    .upgrades-transactions:before {
+        content: 'SA ';
+    }
+    
+    .blog:before {
+        content: '\1F30E';
+    }
+    
+    .blog-admin:before {
+        content: 'DB ';
+    }
+    
+    .blog-report-card:before {
+        content: 'RC  ';
+    }
+    
+    .blog-in-network-admin:before {
+        content: 'NA ';
+    }
+}
