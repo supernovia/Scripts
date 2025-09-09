@@ -1,0 +1,32 @@
+# WordCamp Status Highlighter
+
+A Tampermonkey userscript that highlights WordCamp Central event rows with clear side borders and helpful badges.  
+Makes it easier to scan upcoming, urgent, scheduled, and closed events at a glance. ✨
+
+## Features
+
+- **Scheduled (green):** Any event with `status-wcpt-scheduled`  
+  - Shows a ⏳ **green badge** if the start date is within 6 weeks.  
+- **Active (yellow):** Events not scheduled/closed and with a start date more than 6 weeks away.  
+- **Urgent (red):** Events not scheduled/closed and with either no date or a start date within 6 weeks.  
+  - Shows a ⏳ **red badge** if a start date is set within 6 weeks.  
+  - Shows a ❓ **red badge** if no start date is set.  
+- **Closed/Cancelled/Declined (dark gray):** Any event with one of those statuses.  
+
+## Installation
+
+1. Install [Tampermonkey](https://www.tampermonkey.net/) for your browser.  
+2. Click the raw link to the script:  
+   [**WordCamp Status Highlighter.user.js**](https://raw.githubusercontent.com/velda/wordcamp-status-highlighter/main/wordcamp-status-highlighter.user.js)  
+3. Tampermonkey will prompt you to install the script.  
+4. Visit [WordCamp Central’s wp-admin list](https://central.wordcamp.org/wp-admin/edit.php?post_type=wordcamp) — the highlights will appear automatically.  
+
+## Development
+
+- The script is **vibe coded** — meaning it works, but could always use polish.  
+- Contributions, bug reports, and ideas welcome! Please open an [issue](../../issues) or send a PR.  
+- Versioning uses [semver](https://semver.org/): bump patch for fixes, minor for new features, major for big changes.  
+
+## License
+
+This project is licensed under the [GNU General Public License v2.0 or later (GPL-2.0+)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
