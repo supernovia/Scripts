@@ -1,13 +1,14 @@
 // ==UserScript==
-// @name        Event Status Highlighter
-// @namespace    velda.community
-// @version      1.2
-// @description  Side-border highlights badges for events that are six weeks out
+// @name         WordCamp Status Highlighter
+// @namespace    https://github.com/supernovia/Scripts
+// @version      1.0.0
+// @description  Side-border highlights and badges for WordCamp Central list; vibe coded, contributions welcome.
 // @match        https://central.wordcamp.org/wp-admin/*
+// @updateURL    https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js
+// @downloadURL  https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js
+// @homepageURL  https://github.com/supernovia/Scripts
+// @supportURL   https://github.com/supernovia/Scripts/issues
 // @run-at       document-idle
-// @updateURL    https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.js
-// @downloadURL  https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.js
-// @author       vibe coded by chatgpt & velda
 // @grant        none
 // ==/UserScript==
 
