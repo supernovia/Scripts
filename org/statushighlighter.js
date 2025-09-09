@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Event Status Highlighter
 // @namespace    velda.community
-// @version      1.1
+// @version      1.2
 // @description  Side-border highlights badges for events that are six weeks out
 // @match        https://central.wordcamp.org/wp-admin/*
 // @run-at       document-idle
