@@ -17,7 +17,7 @@ Makes it easier to scan upcoming, urgent, scheduled, and closed events at a glan
 
 1. Install [Tampermonkey](https://www.tampermonkey.net/) for your browser.  
 2. Click the raw link to the script:  
-   [**Event Status Highlighter.user.js**](https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.js)  
+   [**Event Status Highlighter.user.js**](https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js)  
 3. Tampermonkey will prompt you to install the script.  
 4. Visit [WordCamp Central’s wp-admin list](https://central.wordcamp.org/wp-admin/edit.php?post_type=wordcamp) — the highlights will appear automatically.  
 
