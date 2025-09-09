@@ -5,8 +5,8 @@
 // @description  Side-border highlights badges for events that are six weeks out
 // @match        https://central.wordcamp.org/wp-admin/*
 // @run-at       document-idle
-// @updateURL    https://github.com/supernovia/Scripts/raw/refs/heads/master/org/statushighlighter.js
-// @downloadURL  https://github.com/supernovia/Scripts/raw/refs/heads/master/org/statushighlighter.js
+// @updateURL    https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.js
+// @downloadURL  https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.js
 // @author       vibe coded by chatgpt & velda
 // @grant        none
 // ==/UserScript==
