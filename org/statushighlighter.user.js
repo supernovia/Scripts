@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         WordCamp Status Highlighter
 // @namespace    https://github.com/supernovia/Scripts
-// @version      1.0.0
+// @version      1.3.0
 // @description  Side-border highlights and badges for WordCamp Central list; vibe coded, contributions welcome.
 // @match        https://central.wordcamp.org/wp-admin/*
 // @updateURL    https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js
@@ -16,16 +16,16 @@
   'use strict';
 
   const MS_DAY = 86400000;
-  const SIX_WEEKS = 42 * MS_DAY;
+  const THREE_WEEKS = 21 * MS_DAY;
 
   const CLS_SCHEDULED = 'status-wcpt-scheduled';
   const CLOSEDISH = new Set([
     'status-wcpt-closed',
-    'status-wcpt-declined',
+    'status-wcpt-rejected',
     'status-wcpt-cancelled',
   ]);
 
-  // --- Styles: side border only; badge is black ---
+  // --- Styles: side borders + badges ---
   const css = `
 /* Side borders applied to entire row for consistency */
 .wc-mark-scheduled { box-shadow: inset 4px 0 0 0 #00c47a; } /* green */
@@ -47,8 +47,10 @@
 }
 
 /* Color-coded badges */
-.wc-mark-scheduled .wc-badge { background: #00c47a; } /* green */
+.wc-mark-scheduled .wc-badge { background: #00c47a; } /* green by default */
+.wc-mark-scheduled.soon .wc-badge { background: #e91e63; } /* red if soon */
 .wc-mark-urgent    .wc-badge { background: #e91e63; } /* red */
+.wc-mark-active .wc-badge { background: #80888e; } /* grey badge for no-date */
   `;
   const style = document.createElement('style');
   style.textContent = css;
@@ -83,95 +85,103 @@
   const isClosedish = (row) => [...row.classList].some(c => CLOSEDISH.has(c));
   const daysBetween = (a, b) => Math.max(0, Math.round((a - b) / MS_DAY));
 
+  // --- Classification logic ---
   function classify(row, dateCell) {
     if (!dateCell) return { type: 'none' };
 
-    // Closed/cancelled/declined
+    // Closed/cancelled/rejected
     if (isClosedish(row)) return { type: 'closed' };
 
     const parsed = parseStart(dateCell.textContent);
     const scheduled = isScheduled(row);
+    const now = new Date();
 
-    if (scheduled) {
-      // Always green. Badge logic handled separately.
-      return { type: 'scheduled', parsed };
-    }
+    if (scheduled) return { type: 'scheduled', parsed };
 
-    // Not scheduled, not closedish
+    // Not scheduled, not closed
     if (parsed === 'NO_DATE') {
-      return { type: 'urgent', parsed };
-    }
-    if (parsed instanceof Date && !isNaN(parsed)) {
-      const diff = parsed - new Date();
-      if (diff > 0 && diff <= SIX_WEEKS) return { type: 'urgent', parsed };
-      if (diff > SIX_WEEKS) return { type: 'active', parsed };
-      return { type: 'none' };
+      return { type: 'active', parsed }; // Active, not urgent
     }
 
-    // Unknown format: treat as none (so we don't mislabel)
+    if (parsed instanceof Date && !isNaN(parsed)) {
+      const diff = parsed - now;
+      if (diff <= 0) return { type: 'urgent', parsed };           // Past but still open
+      if (diff > 0 && diff <= THREE_WEEKS) return { type: 'urgent', parsed }; // Soon
+      if (diff > THREE_WEEKS) return { type: 'active', parsed };  // Far out
+    }
+
     return { type: 'none' };
   }
 
-function apply(row, dateCell, typeInfo) {
-  // Clear previous
-  row.classList.remove('wc-mark-scheduled','wc-mark-active','wc-mark-urgent','wc-mark-closed');
-  dateCell?.querySelectorAll('.wc-badge').forEach(n => n.remove());
+  // --- Apply visual styles ---
+  function apply(row, dateCell, typeInfo) {
+    // Clear previous
+    row.classList.remove('wc-mark-scheduled','wc-mark-active','wc-mark-urgent','wc-mark-closed','soon');
+    dateCell?.querySelectorAll('.wc-badge').forEach(n => n.remove());
 
-  const { type, parsed } = typeInfo;
+    const { type, parsed } = typeInfo;
+    const now = new Date();
 
-  if (type === 'closed') {
-    row.classList.add('wc-mark-closed');
-    return;
-  }
-
-  if (type === 'scheduled') {
-    row.classList.add('wc-mark-scheduled');
-    // Badge for scheduled with future start within ≤6 weeks
-    if (parsed instanceof Date && !isNaN(parsed)) {
-      const diff = parsed - new Date();
-      if (diff > 0 && diff <= SIX_WEEKS) {
-        const badge = document.createElement('div');
-        badge.className = 'wc-badge';
-        badge.textContent = `Starts in ${daysBetween(parsed, new Date())}d`;
-        dateCell.appendChild(badge);
-      }
-    }
-    return;
-  }
-
-  if (type === 'urgent') {
-    row.classList.add('wc-mark-urgent');
-    // Badge for urgent (either no date, or date within ≤6 weeks)
-    const badge = document.createElement('div');
-    badge.className = 'wc-badge';
-    if (parsed === 'NO_DATE') {
-      badge.textContent = 'No start date';
-    } else if (parsed instanceof Date && !isNaN(parsed)) {
-      const diff = parsed - new Date();
-      if (diff > 0 && diff <= SIX_WEEKS) {
-        badge.textContent = `Starts in ${daysBetween(parsed, new Date())}d`;
-      } else {
-        // not within ≤6 weeks -> no badge
-        badge.remove();
-        return;
-      }
-    } else {
-      // unknown format -> no badge
-      badge.remove();
+    if (type === 'closed') {
+      row.classList.add('wc-mark-closed');
       return;
     }
-    dateCell.appendChild(badge);
-    return;
+
+    if (type === 'scheduled') {
+      row.classList.add('wc-mark-scheduled');
+      if (parsed instanceof Date && !isNaN(parsed)) {
+        const diff = parsed - now;
+        if (diff > 0 && diff <= THREE_WEEKS) {
+          // Mark as soon → red badge
+          row.classList.add('soon');
+          const badge = document.createElement('div');
+          badge.className = 'wc-badge';
+          badge.textContent = `Starts in ${daysBetween(parsed, now)}d`;
+          dateCell.appendChild(badge);
+        } else if (diff > THREE_WEEKS) {
+          // Standard green badge
+          const badge = document.createElement('div');
+          badge.className = 'wc-badge';
+          badge.textContent = `Starts in ${daysBetween(parsed, now)}d`;
+          dateCell.appendChild(badge);
+        }
+      }
+      return;
+    }
+
+      if (type === 'urgent') {
+          row.classList.add('wc-mark-urgent');
+          const badge = document.createElement('div');
+          badge.className = 'wc-badge';
+          if (parsed instanceof Date && !isNaN(parsed)) {
+              const diff = parsed - now;
+              const days = Math.abs(daysBetween(parsed, now));
+              if (diff <= 0) {
+                  badge.textContent = days === 0 ? 'Already started' : `${days}d ago`;
+              } else {
+                  badge.textContent = `Starts in ${daysBetween(parsed, now)}d`;
+              }
+          }
+          dateCell.appendChild(badge);
+          return;
+      }
+
+    if (type === 'active') {
+      row.classList.add('wc-mark-active');
+      if (parsed === 'NO_DATE') {
+        const badge = document.createElement('div');
+        badge.className = 'wc-badge';
+        badge.textContent = 'Missing Dates';
+        dateCell.appendChild(badge);
+      }
+      return;
+    }
+
+    // type === 'none' -> no styling
   }
 
-  if (type === 'active') {
-    row.classList.add('wc-mark-active');
-    return;
-  }
-
-  // type === 'none' -> no styling
-}
-    function processRow(row) {
+  // --- Processing + observers ---
+  function processRow(row) {
     if (!row || row.dataset.wcDecor === '1') return;
     row.dataset.wcDecor = '1';
 
