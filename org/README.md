@@ -26,7 +26,7 @@ Makes it easier to scan event progress at a glance — now with *racing stripes*
 
 ## Development
 
-- This script is **vibe-coded**, meaning it’s practical *and* aesthetically chill.  
+- This script is entirely **vibe-coded** with some manual edits, but inspired by similar idea my son helped me with many years ago. So, props to [Ethan](https://github.com/EthanChristensen01)
 - Contributions, bug reports, and tweaks welcome! Please open an [issue](../../issues) or submit a PR.  
 - When updating, please bump the version number for patches and major changes.
 
