@@ -1,17 +1,20 @@
 # WordCamp Status Highlighter
 
-A Tampermonkey userscript that highlights WordPress community event tracker rows with clear side borders and helpful badges.  
-Makes it easier to scan upcoming, urgent, scheduled, and closed events at a glance. ✨
+A Tampermonkey userscript that highlights WordPress community event tracker and report tables with color-coded side stripes and optional filters.  
+Makes it easier to scan event progress at a glance — now with *racing stripes* for upcoming events. 🏁  
 
 ## Features
 
-- **Scheduled (green):** Any event with `status-wcpt-scheduled`  
-  - Shows a **green badge** with a count down if the event starts within six weeks.
-- **Active (yellow):** Active events that aren't scheduled yet, but are more than six weeks away.  
-- **Urgent (red):** Active events that are not scheduled and either start within six weeks, or are not scheduled.
-  - Shows a  **red badge** with a count down if a start date is set within six weeks.  
-  - Shows a  **red badge** if no start date is set.  
-- **Closed/Cancelled/Declined (dark gray):** Any event with one of those statuses.  
+- **Color-coded borders:** Each event row gets a left stripe based on its status  
+  - **Setup (yellow):** Needs vetting, orientation, or setup tasks  
+  - **Planning (blue):** Organizers are actively preparing  
+  - **Finalizing (purple):** Budget, contracts, or schedule approval in progress  
+  - **Scheduled (green):** Everything ready to go  
+  - **Completed (dark gray):** The event is done and closed  
+  - **Cancelled/Declined (light gray):** Events that won’t take place  
+- **Racing stripes:** Events starting within three weeks show a white-accented stripe (⚡️ subtle, not scary).  
+- **Filter panel:** Quickly toggle visibility for each status, or check “Starting Soon Only” to see just upcoming events.  
+- **Works across pages:** Automatically adapts to both the **Tracker** and **Reports** tables on WordCamp Central.
 
 ## Installation
 
@@ -19,14 +22,14 @@ Makes it easier to scan upcoming, urgent, scheduled, and closed events at a glan
 2. Click the raw link to the script:  
    [**Event Status Highlighter.user.js**](https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js)  
 3. Tampermonkey will prompt you to install the script.  
-4. Visit [WordCamp Central’s wp-admin list](https://central.wordcamp.org/wp-admin/edit.php?post_type=wordcamp) — the highlights will appear automatically.  
+4. Visit any [WordCamp Central](https://central.wordcamp.org/wp-admin/) tracker or report page — highlights will appear automatically.
 
 ## Development
 
-- The script is **vibe coded** — meaning it works, but could always use polish.  
-- Contributions, bug reports, and ideas welcome! Please open an [issue](../../issues) or send a PR.  
-- Please bump version for patches and major changess
+- This script is **vibe-coded**, meaning it’s practical *and* aesthetically chill.  
+- Contributions, bug reports, and tweaks welcome! Please open an [issue](../../issues) or submit a PR.  
+- When updating, please bump the version number for patches and major changes.
 
 ## License
 
-This project is licensed under the [GNU General Public License v2.0 or later (GPL-2.0+)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
+Licensed under the [GNU General Public License v2.0 or later (GPL-2.0+)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).  
