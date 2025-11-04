@@ -1,13 +1,16 @@
 // ==UserScript==
-// @name         WordCamp Status Highlighter
+// @name         Campus Connect Status Highlighter
 // @namespace    https://github.com/supernovia/Scripts
-// @version      1.3.0
-// @description  Side-border highlights and badges for WordCamp Central list; vibe coded, contributions welcome.
-// @match        https://central.wordcamp.org/wp-admin/*
+// @version      1.4.0
+// @description  Status & Coming Soon Highlights + Filters
+// @author       Vibe-Codin' Velda
+// @match        https://central.wordcamp.org/wp-admin/index.php?page=wordcamp-reports&report=campus-connect-details*
+// @match        https://central.wordcamp.org/wp-admin/edit.php?post_type=wordcamp*
 // @updateURL    https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js
 // @downloadURL  https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js
-// @homepageURL  https://github.com/supernovia/Scripts
+// @homepageURL  https://github.com/supernovia/Scripts // don't mind if we fork this though!
 // @supportURL   https://github.com/supernovia/Scripts/issues
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=wordcamp.org
 // @run-at       document-idle
 // @grant        none
 // ==/UserScript==
@@ -15,201 +18,231 @@
 (function () {
   'use strict';
 
-  const MS_DAY = 86400000;
-  const THREE_WEEKS = 21 * MS_DAY;
+  // 🎨 STATUS COLOR GROUPS
+  const STATUS_STYLES = {
+    Setup: {
+      color: '#f1c232',
+      statuses: [
+        'Needs Vetting',
+        'Needs Orientation/Interview',
+        'More Info Requested',
+        'Approved for Pre-Planning Pending Agreement',
+        'Needs E-mail Address',
+        'Needs Site',
+        'Needs Crowdsignal Account',
+        'Needs to be Added to Pre-Planning Schedule',
+      ],
+    },
+    Planning: {
+      color: '#3d85c6',
+      statuses: [
+        'In Pre-Planning',
+        'Needs to Fill Out WordCamp Listing',
+        'Needs to Fill Out Event Listing',
+      ],
+    },
+    Finalizing: {
+      color: '#674ea7',
+      statuses: [
+        'Needs Budget Review',
+        'Budget Review Scheduled',
+        'Needs Contract to be Signed',
+        'Needs to be Added to Official Schedule',
+      ],
+    },
+    Scheduled: {
+      color: '#6aa84f',
+      statuses: ['WordCamp Scheduled', 'Scheduled'],
+    },
+    Completed: {
+      color: '#5b5b5b',
+      statuses: ['WordCamp Closed', 'Closed'],
+    },
+    Cancelled: {
+      color: '#999999',
+      statuses: ['Declined', 'Cancelled'],
+    },
+  };
 
-  const CLS_SCHEDULED = 'status-wcpt-scheduled';
-  const CLOSEDISH = new Set([
-    'status-wcpt-closed',
-    'status-wcpt-rejected',
-    'status-wcpt-cancelled',
-  ]);
+  const soonOnly = { enabled: false };
+  let activeFilters = new Set(Object.keys(STATUS_STYLES));
 
-  // --- Styles: side borders + badges ---
-  const css = `
-/* Side borders applied to entire row for consistency */
-.wc-mark-scheduled { box-shadow: inset 4px 0 0 0 #00c47a; } /* green */
-.wc-mark-active    { box-shadow: inset 4px 0 0 0 #fbde2d; } /* yellow */
-.wc-mark-urgent    { box-shadow: inset 4px 0 0 0 #e91e63; } /* red */
-.wc-mark-closed    { box-shadow: inset 4px 0 0 0 #80888e; } /* dark gray */
-
-/* Badge styling */
-.wc-badge {
-  display: block;
-  margin-top: 3px;
-  padding: .2em .4em;
-  font-size: 11px;
-  line-height: 1.3;
-  border-radius: 3px;
-  font-weight: 600;
-  width: fit-content;
-  color: #fff;
-}
-
-/* Color-coded badges */
-.wc-mark-scheduled .wc-badge { background: #00c47a; } /* green by default */
-.wc-mark-scheduled.soon .wc-badge { background: #e91e63; } /* red if soon */
-.wc-mark-urgent    .wc-badge { background: #e91e63; } /* red */
-.wc-mark-active .wc-badge { background: #80888e; } /* grey badge for no-date */
-  `;
-  const style = document.createElement('style');
-  style.textContent = css;
-  document.head.appendChild(style);
-
-  const monthIdx = (name) => ({
-    january:0,february:1,march:2,april:3,may:4,june:5,
-    july:6,august:7,september:8,october:9,november:10,december:11
-  })[String(name||'').toLowerCase()];
-
-  // Parse "Start: September 22, 2025" / "Start: 22 September 2025"
-  // Also detect "No Date" variants (No Date, dashes, empty)
-  function parseStart(text) {
-    if (!text) return null;
-    const t = text.replace(/\u00a0/g, ' ').trim();
-
-    if (
-      /\bno\s*date\b/i.test(t) ||
-      /Start:\s*[\u2013\u2014\-–—]\s*$/i.test(t) ||
-      /^Start:\s*$/i.test(t)
-    ) return 'NO_DATE';
-
-    let m = t.match(/Start:\s*([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})/);
-    if (m) { const mi = monthIdx(m[1]); if (mi != null) return new Date(+m[3], mi, +m[2]); }
-    m = t.match(/Start:\s*(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
-    if (m) { const mi = monthIdx(m[2]); if (mi != null) return new Date(+m[3], mi, +m[1]); }
-
-    return null; // unknown
+  function getStatusColumnIndex(table) {
+    const headers = Array.from(table.querySelectorAll('thead th'));
+    return headers.findIndex((th) => /status/i.test(th.textContent.trim()));
   }
 
-  const isScheduled = (row) => row.classList.contains(CLS_SCHEDULED);
-  const isClosedish = (row) => [...row.classList].some(c => CLOSEDISH.has(c));
-  const daysBetween = (a, b) => Math.max(0, Math.round((a - b) / MS_DAY));
-
-  // --- Classification logic ---
-  function classify(row, dateCell) {
-    if (!dateCell) return { type: 'none' };
-
-    // Closed/cancelled/rejected
-    if (isClosedish(row)) return { type: 'closed' };
-
-    const parsed = parseStart(dateCell.textContent);
-    const scheduled = isScheduled(row);
+  // 🎨 Apply color stripe + filter + “racing stripes”
+  function updateRows(table) {
+    const isListView = table.classList.contains('wp-list-table');
+    const statusCol = !isListView ? getStatusColumnIndex(table) : -1;
     const now = new Date();
+    const soonThreshold = 21 * 24 * 60 * 60 * 1000; // 3 weeks
 
-    if (scheduled) return { type: 'scheduled', parsed };
+    table.querySelectorAll('tbody tr').forEach((row) => {
+      let statusText = '';
+      let startDateText = '';
+      let isSoon = false;
 
-    // Not scheduled, not closed
-    if (parsed === 'NO_DATE') {
-      return { type: 'active', parsed }; // Active, not urgent
-    }
+      // 🔍 Find status + start date
+      if (isListView) {
+        const statusSpan = row.querySelector('.column-title .post-state:last-of-type');
+        if (statusSpan) statusText = statusSpan.textContent.trim();
 
-    if (parsed instanceof Date && !isNaN(parsed)) {
-      const diff = parsed - now;
-      if (diff <= 0) return { type: 'urgent', parsed };           // Past but still open
-      if (diff > 0 && diff <= THREE_WEEKS) return { type: 'urgent', parsed }; // Soon
-      if (diff > THREE_WEEKS) return { type: 'active', parsed };  // Far out
-    }
+        const dateCell = row.querySelector('.column-wcpt_date');
+        if (dateCell) {
+          const match = dateCell.textContent.match(/Start:\s*(\d{4}-\d{2}-\d{2})/);
+          if (match) startDateText = match[1];
+        }
+      } else {
+        if (statusCol >= 0 && row.children[statusCol]) {
+          statusText = row.children[statusCol].textContent.trim();
+        }
+        const dateCell = row.querySelector('td:first-child');
+        if (dateCell) startDateText = dateCell.textContent.trim();
+      }
 
-    return { type: 'none' };
-  }
+      const firstCell = row.querySelector('td:first-child, th.check-column');
+      if (firstCell) firstCell.style.boxShadow = '';
 
-  // --- Apply visual styles ---
-  function apply(row, dateCell, typeInfo) {
-    // Clear previous
-    row.classList.remove('wc-mark-scheduled','wc-mark-active','wc-mark-urgent','wc-mark-closed','soon');
-    dateCell?.querySelectorAll('.wc-badge').forEach(n => n.remove());
+      // 🎨 Determine base stripe color
+      const lower = statusText.toLowerCase();
+      let matchedGroup = null;
+      let stripeColor = '';
+      for (const [group, style] of Object.entries(STATUS_STYLES)) {
+        if (style.statuses.some((s) => lower.includes(s.toLowerCase()))) {
+          matchedGroup = group;
+          stripeColor = style.color;
+          break;
+        }
+      }
 
-    const { type, parsed } = typeInfo;
-    const now = new Date();
-
-    if (type === 'closed') {
-      row.classList.add('wc-mark-closed');
-      return;
-    }
-
-    if (type === 'scheduled') {
-      row.classList.add('wc-mark-scheduled');
-      if (parsed instanceof Date && !isNaN(parsed)) {
+      // 🕒 Check if event is starting soon
+      const parsed = Date.parse(startDateText);
+      if (!Number.isNaN(parsed)) {
         const diff = parsed - now;
-        if (diff > 0 && diff <= THREE_WEEKS) {
-          // Mark as soon → red badge
-          row.classList.add('soon');
-          const badge = document.createElement('div');
-          badge.className = 'wc-badge';
-          badge.textContent = `Starts in ${daysBetween(parsed, now)}d`;
-          dateCell.appendChild(badge);
-        } else if (diff > THREE_WEEKS) {
-          // Standard green badge
-          const badge = document.createElement('div');
-          badge.className = 'wc-badge';
-          badge.textContent = `Starts in ${daysBetween(parsed, now)}d`;
-          dateCell.appendChild(badge);
+        if (diff >= 0 && diff <= soonThreshold) isSoon = true;
+      }
+
+      // 🏁 Apply "racing stripes" or normal stripe
+      if (firstCell) {
+        if (isSoon && stripeColor) {
+          firstCell.style.boxShadow = `inset 2px 0 0 ${stripeColor}, inset 3px 0 0 #ffffff, inset 6px 0 0 ${stripeColor}`;
+        } else if (stripeColor) {
+          firstCell.style.boxShadow = `inset 6px 0 0 ${stripeColor}`;
+        } else if (isSoon) {
+          firstCell.style.boxShadow = `inset 6px 0 0 #cccccc`;
+        } else {
+          firstCell.style.boxShadow = '';
         }
       }
-      return;
-    }
 
-      if (type === 'urgent') {
-          row.classList.add('wc-mark-urgent');
-          const badge = document.createElement('div');
-          badge.className = 'wc-badge';
-          if (parsed instanceof Date && !isNaN(parsed)) {
-              const diff = parsed - now;
-              const days = Math.abs(daysBetween(parsed, now));
-              if (diff <= 0) {
-                  badge.textContent = days === 0 ? 'Already started' : `${days}d ago`;
-              } else {
-                  badge.textContent = `Starts in ${daysBetween(parsed, now)}d`;
-              }
-          }
-          dateCell.appendChild(badge);
-          return;
-      }
-
-    if (type === 'active') {
-      row.classList.add('wc-mark-active');
-      if (parsed === 'NO_DATE') {
-        const badge = document.createElement('div');
-        badge.className = 'wc-badge';
-        badge.textContent = 'Missing Dates';
-        dateCell.appendChild(badge);
-      }
-      return;
-    }
-
-    // type === 'none' -> no styling
-  }
-
-  // --- Processing + observers ---
-  function processRow(row) {
-    if (!row || row.dataset.wcDecor === '1') return;
-    row.dataset.wcDecor = '1';
-
-    const dateCell = row.querySelector('td.wcpt_date') ||
-                     row.querySelector('td.column-wcpt_date') ||
-                     row.querySelector('td[data-colname="Date"]');
-
-    const info = classify(row, dateCell);
-    apply(row, dateCell, info);
-  }
-
-  function initialScan() {
-    document.querySelectorAll('#the-list > tr').forEach(processRow);
-  }
-
-  // Run once
-  initialScan();
-
-  // Observe direct row additions only (safe)
-  const table = document.querySelector('#the-list');
-  if (table) {
-    const obs = new MutationObserver(records => {
-      for (const r of records) {
-        for (const node of r.addedNodes) {
-          if (node.nodeType === 1 && node.tagName === 'TR') processRow(node);
-        }
-      }
+      // 🚫 Filter logic
+      const showByStatus = !matchedGroup || activeFilters.has(matchedGroup);
+      const showBySoon = !soonOnly.enabled || isSoon;
+      row.style.display = showByStatus && showBySoon ? '' : 'none';
     });
-    obs.observe(table, { childList: true });
   }
+
+  // ☑️ Legend with plain-text “Starting Soon Only” toggle
+  function addFilterLegend(table) {
+    if (document.querySelector('#cc-filter-legend')) return;
+
+    const legend = document.createElement('div');
+    legend.id = 'cc-filter-legend';
+    Object.assign(legend.style, {
+      margin: '10px 0',
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '8px',
+      fontSize: '13px',
+      alignItems: 'center',
+    });
+
+    const addLegendItem = (label, color, key) => {
+      const labelWrap = document.createElement('label');
+      Object.assign(labelWrap.style, {
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '4px 8px',
+        borderRadius: '4px',
+        backgroundColor: color,
+        color: '#fff',
+        textShadow: '0 1px 1px rgba(0,0,0,0.4)',
+        cursor: 'pointer',
+        userSelect: 'none',
+        gap: '4px',
+        transition: 'opacity 0.2s ease',
+      });
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = true;
+      checkbox.dataset.status = key;
+      checkbox.style.cursor = 'pointer';
+      checkbox.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          activeFilters.add(key);
+          labelWrap.style.opacity = '1';
+        } else {
+          activeFilters.delete(key);
+          labelWrap.style.opacity = '0.4';
+        }
+        updateRows(table);
+      });
+
+      labelWrap.append(checkbox, document.createTextNode(` ${label}`));
+      legend.appendChild(labelWrap);
+    };
+
+    for (const [group, { color }] of Object.entries(STATUS_STYLES)) {
+      addLegendItem(group, color, group);
+    }
+
+    // plain “Starting Soon Only” filter
+    const soonLabel = document.createElement('label');
+    Object.assign(soonLabel.style, {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+      cursor: 'pointer',
+      fontWeight: '500',
+    });
+
+    const soonBox = document.createElement('input');
+    soonBox.type = 'checkbox';
+    soonBox.checked = false;
+    soonBox.addEventListener('change', (e) => {
+      soonOnly.enabled = e.target.checked;
+      updateRows(table);
+    });
+
+    soonLabel.append(soonBox, document.createTextNode('Starting Soon Only'));
+    legend.appendChild(soonLabel);
+
+    table.parentElement.insertBefore(legend, table);
+  }
+
+  // 🚀 Initialize (with single-run guard)
+  function enhance() {
+    if (document.querySelector('#cc-filter-legend')) return; // don’t double up
+    const table =
+      document.querySelector('#report-data-table') ||
+      document.querySelector('.wp-list-table');
+    if (!table) return;
+
+    addFilterLegend(table);
+    updateRows(table);
+  }
+
+  // 👀 Observe until ready, then stop
+  const observer = new MutationObserver(() => {
+    const table = document.querySelector('#report-data-table, .wp-list-table');
+    if (table && !document.querySelector('#cc-filter-legend')) {
+      enhance();
+      observer.disconnect();
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
 })();
