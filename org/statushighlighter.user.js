@@ -8,7 +8,7 @@
 // @match        https://central.wordcamp.org/wp-admin/edit.php?post_type=wordcamp*
 // @updateURL    https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js
 // @downloadURL  https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js
-// @homepageURL  https://github.com/supernovia/Scripts // don't mind if we fork this though!
+// @homepageURL  https://github.com/supernovia/Scripts/tree/master/org // fork away!
 // @supportURL   https://github.com/supernovia/Scripts/issues
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=wordcamp.org
 // @run-at       document-idle
