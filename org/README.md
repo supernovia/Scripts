@@ -1,6 +1,6 @@
-# WordCamp Status Highlighter
+# Campus Connect Status Highlighter
 
-A Tampermonkey userscript that highlights WordPress community event tracker and report tables with color-coded side stripes and optional filters.  
+A Tampermonkey userscript that highlights Campus Connect trackers and report with color-coded side stripes and optional filters.  
 Makes it easier to scan a list of events for status — now with *racing stripes* for upcoming events. 🏁  
 
 ## Features
@@ -14,7 +14,7 @@ Makes it easier to scan a list of events for status — now with *racing stripes
   - **Cancelled/Declined (light gray):** Events that won’t take place  
 - **Racing stripes:** Events starting within three weeks show a white-accented stripe (⚡️ subtle, not scary).  
 - **Filter panel:** Quickly toggle visibility for each status, or check “Starting Soon Only” to see just upcoming events.  
-- **Works across pages:** Automatically adapts to both the **Tracker** and **Reports** tables on WordCamp Central.
+- **Works across pages:** Automatically adapts to both the [**Campus Connect Tracker List**](https://central.wordcamp.org/wp-admin/edit.php?post_type=wordcamp&post_status=all&type=campusconnect) and [**Campus Connect Details**](https://central.wordcamp.org/wp-admin/index.php?page=wordcamp-reports&report=campus-connect-details) report on WordCamp Central.
 
 ## Note
 On the trackers list, filters only apply to the current page. Consider increasing the number in Screen Options (I use 30).
