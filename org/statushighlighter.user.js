@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         Campus Connect Status Highlighter
 // @namespace    https://github.com/supernovia/Scripts
-// @version      1.4.0
+// @version      1.4.1
 // @description  Status & Coming Soon Highlights + Filters
 // @author       Vibe-Codin' Velda
 // @match        https://central.wordcamp.org/wp-admin/index.php?page=wordcamp-reports&report=campus-connect-details*
 // @match        https://central.wordcamp.org/wp-admin/edit.php?post_type=wordcamp*
+// @match        https://central.wordcamp.org/wp-admin/edit.php?post_status=wcpt*
 // @updateURL    https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js
 // @downloadURL  https://raw.githubusercontent.com/supernovia/Scripts/master/org/statushighlighter.user.js
 // @homepageURL  https://github.com/supernovia/Scripts/tree/master/org // fork away!
