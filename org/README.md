@@ -1,7 +1,7 @@
 # WordCamp Status Highlighter
 
 A Tampermonkey userscript that highlights WordPress community event tracker and report tables with color-coded side stripes and optional filters.  
-Makes it easier to scan event progress at a glance — now with *racing stripes* for upcoming events. 🏁  
+Makes it easier to scan a list of events for status — now with *racing stripes* for upcoming events. 🏁  
 
 ## Features
 
@@ -15,6 +15,9 @@ Makes it easier to scan event progress at a glance — now with *racing stripes*
 - **Racing stripes:** Events starting within three weeks show a white-accented stripe (⚡️ subtle, not scary).  
 - **Filter panel:** Quickly toggle visibility for each status, or check “Starting Soon Only” to see just upcoming events.  
 - **Works across pages:** Automatically adapts to both the **Tracker** and **Reports** tables on WordCamp Central.
+
+## Note
+On the trackers list, filters only apply to the current page. Consider increasing the number in Screen Options (I use 30).
 
 ## Installation
 
