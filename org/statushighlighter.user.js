@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Campus Connect Status Highlighter
 // @namespace    https://github.com/supernovia/Scripts
-// @version      1.4.2
+// @version      1.4.3
 // @description  Status & Coming Soon Highlights + Filters
 // @author       Vibe-Codin' Velda
 // @match        https://central.wordcamp.org/wp-admin/index.php?page=wordcamp-reports&report=campus-connect-details*
@@ -25,7 +25,7 @@
       statuses: [
         'Needs Vetting',
         'Needs Orientation/Interview',
-        'More Info Requested',
+        'On Hold',
         'Approved for Pre-Planning Pending Agreement',
         'Needs E-mail Address',
         'Needs Site',
